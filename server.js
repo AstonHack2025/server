@@ -1,16 +1,40 @@
 const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
 const cors = require("cors");
 
 const app = express();
-const PORT = 3001; // Make sure it's not conflicting with your Next.js port
+const server = http.createServer(app);
 
-app.use(cors());
-app.use(express.json()); // Allow JSON requests
+// Enable CORS for your frontend
+app.use(
+  cors({
+    origin: "http://localhost:3000", // Allow frontend to access backend
+    methods: ["GET", "POST"],
+  })
+);
 
-app.get("/api/hello", (req, res) => {
-    res.json({ message: "Hello there human!" });
+// Initialize Socket.io with CORS settings
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+  },
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+io.on("connection", (socket) => {
+  console.log("A user connected:", socket.id);
+
+  socket.on("sendMessage", (message) => {
+    console.log("Received message:", message);
+    io.emit("receiveMessage", message);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+  });
+});
+
+server.listen(3001, () => {
+  console.log("Server running on http://localhost:3001");
 });

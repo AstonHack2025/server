@@ -22,6 +22,8 @@ const io = new Server(server, {
   },
 });
 
+let code = "// Start coding..."
+
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
@@ -29,6 +31,15 @@ io.on("connection", (socket) => {
     console.log("Received message:", message);
     io.emit("receiveMessage", message);
   });
+
+  socket.emit("load-code", code);
+
+  socket.on("code-change", (newCode) => {
+    code = newCode;
+    socket.broadcast.emit("code-change", newCode);
+  });
+
+
 
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
